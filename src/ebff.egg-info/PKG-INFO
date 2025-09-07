@@ -1,0 +1,122 @@
+Metadata-Version: 2.4
+Name: ebff
+Version: 0.1.0
+Summary: Even Better Feed Finder - Advanced RSS/Atom/JSON feed discovery and analysis tool
+Home-page: https://github.com/yourusername/ebff
+Author: Your Name
+Author-email: your.email@example.com
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content :: News/Diary
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: requests>=2.31.0
+Requires-Dist: beautifulsoup4>=4.12.0
+Requires-Dist: lxml>=4.9.0
+Requires-Dist: feedparser>=6.0.0
+Requires-Dist: python-dateutil>=2.8.0
+Requires-Dist: validators>=0.22.0
+Requires-Dist: tldextract>=5.0.0
+Requires-Dist: chardet>=5.2.0
+Requires-Dist: urllib3>=2.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: flake8>=6.1.0; extra == "dev"
+Requires-Dist: mypy>=1.5.0; extra == "dev"
+Requires-Dist: pre-commit>=3.4.0; extra == "dev"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# EBFF - Even Better Feed Finder
+
+The most comprehensive RSS/Atom/JSON feed discovery tool. EBFF combines multiple discovery techniques with intelligent scoring to find feeds that other tools miss.
+
+## Features
+
+- 🔍 **8+ Discovery Methods** - From common patterns to content sniffing
+- 📊 **Quality Scoring** - Rates feeds 0-100 based on freshness, content, and validity
+- 🚀 **Fast & Concurrent** - Batch process hundreds of sites efficiently  
+- 📰 **Multi-Format Support** - RSS, Atom, JSON Feed, Podcasts
+- 🎯 **Smart Detection** - Meta tags, sitemaps, and heuristic analysis
+- 📁 **Export Options** - JSON, CSV, or structured data for integration
+
+## Quick Start
+
+```bash
+# Install
+pip install -r requirements.txt
+
+# Find feeds for a single site
+python src/ebff/cli.py techcrunch.com
+
+# Get detailed information
+python src/ebff/cli.py bbc.com --detailed
+
+# Only high-quality feeds (score 70+)
+python src/ebff/cli.py news.ycombinator.com --min-score 70
+```
+
+## Installation
+
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+
+### Command Line
+
+```bash
+# Basic discovery
+python src/ebff/cli.py example.com
+
+# Deep scan with all methods
+python src/ebff/cli.py example.com --deep-scan
+
+# Batch processing
+python src/ebff/cli.py --batch sites.txt --workers 10
+```
+
+### Python API
+
+```python
+from ebff import FeedFinder
+
+# Initialize finder
+finder = FeedFinder()
+
+# Discover feeds
+feeds = finder.discover("techcrunch.com")
+```
+
+## Why EBFF?
+
+**Even Better** than existing feed finders because:
+- ✅ 8+ discovery methods vs 2-3 in other tools
+- ✅ Quality scoring and validation
+- ✅ JSON Feed support
+- ✅ Batch processing
+- ✅ Modern Python 3.8+ codebase
+
+## License
+
+MIT License
