@@ -233,8 +233,16 @@ class SitemapDiscovery(DiscoveryMethod):
             f"{base_url}/sitemap_index.xml",
             f"{base_url}/robots.txt"
         ]
-        
-        for sitemap_url in sitemap_urls:
+        seen_sitemaps = set()
+        index = 0
+
+        while index < len(sitemap_urls):
+            sitemap_url = sitemap_urls[index]
+            index += 1
+            if not sitemap_url or sitemap_url in seen_sitemaps:
+                continue
+            seen_sitemaps.add(sitemap_url)
+
             try:
                 response = self.http_client.get(sitemap_url)
                 if not response or response.status_code != 200:
@@ -246,7 +254,8 @@ class SitemapDiscovery(DiscoveryMethod):
                     for line in response.text.split('\n'):
                         if line.lower().startswith('sitemap:'):
                             actual_sitemap = line.split(':', 1)[1].strip()
-                            sitemap_urls.append(actual_sitemap)
+                            if actual_sitemap and actual_sitemap not in seen_sitemaps:
+                                sitemap_urls.append(actual_sitemap)
                 else:
                     # Parse XML sitemap
                     soup = BeautifulSoup(response.text, 'xml')
