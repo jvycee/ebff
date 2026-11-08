@@ -110,12 +110,12 @@ def discover_feeds(url: str, args):
     return feeds
 
 
-def batch_discover(urls: List[str], args):
-    """Discover feeds for multiple URLs"""
+def batch_discover(urls: List[str], args) -> List[FeedInfo]:
+    """Discover feeds for multiple URLs and return every feed found."""
     finder = FeedFinder(timeout=args.timeout)
     
     results = finder.batch_discover(urls, max_workers=args.workers)
-    
+    found: List[FeedInfo] = []
     total_feeds = 0
     for url, feeds in results.items():
         print(f"\n{'='*60}")
@@ -127,12 +127,14 @@ def batch_discover(urls: List[str], args):
                     print_feed_info(feed, detailed=True)
                 else:
                     print(f"  - {feed.url} (Score: {feed.quality_score})")
+            found.extend(feeds)
             total_feeds += len(feeds)
         else:
             print(f"❌ No feeds found")
     
     print(f"\n{'='*60}")
     print(f"Total: {total_feeds} feeds found across {len(urls)} URLs")
+    return found
 
 
 def export_results(feeds: List[FeedInfo], output_file: str, format: str = 'json'):
@@ -276,7 +278,7 @@ Examples:
             print(f"❌ Error: No URLs found in {args.batch}")
             sys.exit(1)
         
-        batch_discover(urls, args)
+        all_feeds = batch_discover(urls, args)
     
     else:
         # Single URL processing
