@@ -339,12 +339,14 @@ class FeedValidator:
         return max(0, min(100, score))
     
     def validate_and_score_feeds(self, feeds: List[FeedInfo]) -> List[FeedInfo]:
-        """Validate and score a list of feeds"""
+        """Score each feed object from its own fields.
+
+        Remembering a URL must not leave a later object at the default score.
+        """
         for feed in feeds:
-            if feed.url not in self._validated_urls:
-                feed.quality_score = self.score_feed(feed)
-                self._validated_urls.add(feed.url)
-        
+            feed.quality_score = self.score_feed(feed)
+            self._validated_urls.add(feed.url)
+
         return feeds
     
     def deduplicate_feeds(self, feeds: List[FeedInfo]) -> List[FeedInfo]:
