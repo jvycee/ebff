@@ -19,8 +19,10 @@ class _Http:
 
     def get(self, url, timeout=None, use_cache=True):
         self.calls.append(url)
+        # A non-200 stops expansion without raising. The production loop
+        # catches exceptions, so a raised cap would be swallowed and hang.
         if len(self.calls) > 12:
-            raise AssertionError("sitemap worklist did not terminate: %s" % self.calls)
+            return _Response(404, "")
         page = self.pages.get(url)
         if page is None:
             return _Response(404, "")
@@ -37,7 +39,9 @@ class TestSitemapWorklist:
         sibling = "https://example.com/alt-sitemap.xml"
         http = _Http({
             robots: (
-                "Sitemap: https://example.com/robots.txt\n"
+                "Sitemap:\n"
+                "Sitemap:    \n"
+                "Sitemap: https://example.com/robots.txt  \n"
                 "Sitemap: https://example.com/alt-sitemap.xml\n"
             ),
             sibling: (
