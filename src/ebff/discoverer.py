@@ -57,6 +57,9 @@ class FeedDiscoverer:
         
         logger.debug(f"Starting feed discovery for: {url}")
         self._discovered_feeds.clear()
+        # Live plugins dedupe with their own sets. Reset those too so this
+        # call still returns feeds that an earlier call already marked.
+        self.plugin_manager.clear_all_caches()
         feeds = []
         
         print(f"\n🔍 Discovering feeds for: {url}")
