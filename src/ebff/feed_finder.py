@@ -134,6 +134,8 @@ class FeedFinder:
             unique_feeds = self._deduplicate_feeds(feeds)
             if validate_quality:
                 unique_feeds = self._validate_and_score_feeds(unique_feeds)
+            if min_score > 0:
+                unique_feeds = [f for f in unique_feeds if f.quality_score >= min_score]
             return sorted(unique_feeds, key=lambda x: x.quality_score, reverse=True)
         
         if deep_scan:
