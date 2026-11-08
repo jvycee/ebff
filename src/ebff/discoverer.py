@@ -57,16 +57,17 @@ class FeedDiscoverer:
         
         logger.debug(f"Starting feed discovery for: {url}")
         self._discovered_feeds.clear()
-        # Live plugins dedupe with their own sets. Reset those too so this
-        # call still returns feeds that an earlier call already marked.
-        self.plugin_manager.clear_all_caches()
+        # One set of plugin objects per call. batch_discover runs several
+        # discover() calls at once on this instance; they must not clear or
+        # read each other's seen URLs. The shared HTTP client is unchanged.
+        plugins = self._plugins_for_call()
         feeds = []
         
         print(f"\n🔍 Discovering feeds for: {url}")
         
         # Method 1: Check common URL patterns
         print("Checking feed patterns: ", end="", flush=True)
-        pattern_feeds = self.plugin_manager.get_plugin("common_pattern").discover(url)
+        pattern_feeds = plugins["common_pattern"].discover(url)
         feeds.extend(pattern_feeds)
         print(" Done!")
         
@@ -79,45 +80,55 @@ class FeedDiscoverer:
         
         # Method 2: Parse HTML for link tags
         print("Parsing HTML: ", end="", flush=True)
-        html_feeds = self.plugin_manager.get_plugin("html_link").discover(url)
+        html_feeds = plugins["html_link"].discover(url)
         feeds.extend(html_feeds)
         print("✓" if html_feeds else "✗")
         
         # Method 3: Check meta tags
         print("Analyzing meta tags: ", end="", flush=True)
-        meta_feeds = self.plugin_manager.get_plugin("meta_tag").discover(url)
+        meta_feeds = plugins["meta_tag"].discover(url)
         feeds.extend(meta_feeds)
         print("✓" if meta_feeds else "✗")
         
         # Method 4: Check sitemap
         print("Checking sitemap: ", end="", flush=True)
-        sitemap_feeds = self.plugin_manager.get_plugin("sitemap").discover(url)
+        sitemap_feeds = plugins["sitemap"].discover(url)
         feeds.extend(sitemap_feeds)
         print("✓" if sitemap_feeds else "✗")
         
         # Method 5: Content sniffing
         print("Content sniffing: ", end="", flush=True)
-        sniff_feeds = self.plugin_manager.get_plugin("content_sniff").discover(url)
+        sniff_feeds = plugins["content_sniff"].discover(url)
         feeds.extend(sniff_feeds)
         print("✓" if sniff_feeds else "✗")
         
         return self._finalize_feeds(feeds, validate_quality, min_score)
+
+    def _plugins_for_call(self) -> Dict[str, object]:
+        """Copy the registered plugins so this call owns its seen URLs."""
+        scoped = {}
+        for name, plugin in self.plugin_manager._plugins.items():
+            scoped[name] = type(plugin)(
+                plugin.http_client,
+                plugin.validator,
+                plugin.config,
+            )
+        return scoped
     
     def _finalize_feeds(self, feeds: List[FeedInfo], validate_quality: bool, min_score: int) -> List[FeedInfo]:
-        """Finalize feeds by deduplicating, validating, and scoring"""
+        """Finalize feeds by scoring, then keeping the highest-scored duplicate."""
         if not feeds:
             return feeds
-        
-        # Deduplicate feeds
-        feeds = self.validator.deduplicate_feeds(feeds)
-        
-        # Validate and score feeds if requested
+
+        # Scores exist before dedupe so a higher-quality alias is the one kept.
+        # Without validation, leave preset scores alone and do not apply min_score.
         if validate_quality:
             feeds = self.validator.validate_and_score_feeds(feeds)
-            
-            # Filter by minimum score
-            if min_score > 0:
-                feeds = [f for f in feeds if f.quality_score >= min_score]
+
+        feeds = self.validator.deduplicate_feeds(feeds)
+
+        if validate_quality and min_score > 0:
+            feeds = [f for f in feeds if f.quality_score >= min_score]
         
         # Sort by quality score (highest first)
         feeds.sort(key=lambda f: f.quality_score, reverse=True)
